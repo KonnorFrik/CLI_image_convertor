@@ -11,13 +11,13 @@ def convert_one(name_in: str, name_out: str, show_msg: bool = False):
         print(f"File {name_in} converted to {file_out_ext} with name {name_out}")
 
 
-def convert_many(ext_from: str, ext_to: str, dir_in: str = '.', dir_out: str = '.'):
+def convert_many(ext_from: str, ext_to: str, dir_in: str = '.', dir_out: str = '.', show_msg=False):
     import os
 
     files = [file for file in os.listdir(dir_in) if file.split('.')[-1] == ext_from]
 
     if not files:
-        raise Exception(f"Not found any file with '{ext_from}' extension")
+        raise FileNotFoundError(f"Not found any file with '{ext_from}' extension")
 
     for file in files:
         try:
@@ -26,10 +26,12 @@ def convert_many(ext_from: str, ext_to: str, dir_in: str = '.', dir_out: str = '
             convert_one(in_file, out_file)
 
         except Exception as e:
-            print(f"Can not convert '{file}' to '{out_file}'.")
+            #print(f"Can not convert '{file}' to '{out_file}'.")
+            print(e)
 
         else:
-            print(f"Converted {len(files)} images")
+            if show_msg:
+                print(f"Converted {len(files)} images")
 
 
 def choose_mode(line_args: argparse.Namespace):
@@ -39,10 +41,11 @@ def choose_mode(line_args: argparse.Namespace):
     if line_in and line_out:
         convert_one(line_in, line_out, show_msg=True)
 
-    ext_from = getattr(line_args, 'from', None)
-    ext_to = getattr(line_args, 'to', None)
-    dir_in = getattr(line_args, 'source')
-    dir_out = getattr(line_args, 'dist')
+    ext_from = getattr(line_args, 'from')
+    ext_to = getattr(line_args, 'to')
+    dir_in = getattr(line_args, 'source') or '.'
+    dir_out = getattr(line_args, 'dist') or '.'
+    #verbose = getattr(line_args, 'verbose')
 
     if ext_from and ext_to:
         convert_many(ext_from=ext_from, ext_to=ext_to, dir_in=dir_in, dir_out=dir_out)
@@ -54,8 +57,9 @@ def main():
     parser.add_argument('-o', '--out', help="Output filename")
     parser.add_argument('-f', '--from', help="Convert all images with given extension. Don't work without '--to' argument")
     parser.add_argument('-t', '--to', help="Convert all images to given extension. Don't work without '--from' argument")
-    parser.add_argument('-s', '--source', help="Where take files to convert. Works only with multiple conversion")
-    parser.add_argument('-d', '--dist', help="Place converted files to DIST. Works only with multiple conversion")
+    parser.add_argument('-s', '--source', help="Where take files to convert. Works only with multiple conversion. Current folder for default")
+    parser.add_argument('-d', '--dist', help="Place converted files to DIST. Works only with multiple conversion. Current folder for default")
+    #parser.add_argument('-v', '--verbose', help="Show information on work")
 
     args = parser.parse_args()
     if len(sys.argv) <= 1:
